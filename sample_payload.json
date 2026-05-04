@@ -1,0 +1,7 @@
+{
+  "camion_id": "TRK-001",
+  "ruta": "Madrid-Paris",
+  "temperatura_celsius": 4.2,
+  "estado_carga": "OPTIMO",
+  "timestamp": "2026-05-04T23:15:00.000000"
+}

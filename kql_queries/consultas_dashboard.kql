@@ -1,0 +1,41 @@
+// =====================================================================
+// PROYECTO NOC: COLD CHAIN INTELLIGENCE
+// Consultas de Kusto Query Language (KQL) utilizadas en Microsoft Fabric
+// =====================================================================
+
+// 1. DDL: Creación de la tabla de destino para el streaming IoT
+.create table raw_telemetria (
+    camion_id: string,
+    ruta: string,
+    temperatura_celsius: real,
+    estado_carga: string,
+    timestamp: datetime
+)
+
+// 2. DASHBOARD: Evolución Térmica en Tiempo Real (Gráfico de Líneas)
+// Muestra la temperatura de cada camión en los últimos 5 minutos
+raw_telemetria
+| where timestamp > ago(5m)
+| summarize temp_media = avg(temperatura_celsius) by bin(timestamp, 30s), camion_id
+| render timechart
+
+// 3. DASHBOARD: KPI Temperatura Media Global
+// Calcula el promedio exacto de toda la flota
+raw_telemetria
+| where timestamp > ago(5m)
+| summarize media = round(avg(temperatura_celsius), 2)
+
+// 4. DASHBOARD: KPI Camiones en Alerta
+// Cuenta cuántos camiones distintos han reportado estado crítico
+raw_telemetria
+| where timestamp > ago(5m)
+| where estado_carga == "ALERTA"
+| summarize Total_Alertas = dcount(camion_id)
+
+// 5. DASHBOARD: Tabla de Última Posición y Estado
+// Se queda solo con el registro más reciente de cada camión
+raw_telemetria
+| where timestamp > ago(5m)
+| summarize arg_max(timestamp, *) by camion_id
+| project camion_id, ruta, temperatura_celsius, estado_carga
+| sort by camion_id asc
